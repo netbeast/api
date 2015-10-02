@@ -98,11 +98,10 @@ function $resource (topic) {
   }
 }
 
-$resource('lights').set({on: 0})
+$resource('lights').set({on: 0, bri: 255, guapo: 12})
 .then(function (data) {
   console.log('success')
   console.log(data)
-
 })
 .catch(function (data) {
   console.log('error')

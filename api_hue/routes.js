@@ -20,18 +20,18 @@ loadBridge(function (err, api) {
       api.lightStatus(req.params.id)
       .then(function (data) {
         Object.keys(req.body).forEach(function (key) {
-          if (!data.state[key]) {
-            delete data.state[key]
+          console.log(data.state[key])
+          if (data.state[key] === undefined) {
+            delete req.body[key]
           }
         })
-        api.setLightState(req.params.id, data.state)
+        console.log(req.body)
+        api.setLightState(req.params.id, req.body)
         .then(function (result) {
-          console.log('OK')
-          console.log(result)
+          res.send(true)
         })
         .fail(function (err) {
-          console.log('ERR')
-          console.log(err)
+          res.status(404).send({ error: 'Value not available' })
         })
         .done()
       })
