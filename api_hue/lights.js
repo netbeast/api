@@ -18,19 +18,19 @@ module.exports = function (callback) {
       callback.call(this, null)
     },
 
-    async.apply(fs.readFile, 'username.txt'),
-
-    function createUser (user, callback) {
-      if (user) {
-        callback(null, user.toString())
-      } else {
-        hueapi.createUser(ipbridge, null, null, callback)
-      }
+    function createUser (callback) {
+      fs.readFile('username.txt', function (err, user) {
+        if (user) {
+          callback(null, user.toString())
+        } else {
+          hueapi.createUser(ipbridge, null, null, callback)
+        }
+      })
     },
 
     function (user, callback) {
       if (user === null && ipbridge !== null) {
-        createUser()
+        this.createUser()
       } else {
         fs.writeFile('username.txt', user)
         callback(null, user)

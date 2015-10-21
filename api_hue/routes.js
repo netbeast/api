@@ -12,7 +12,16 @@ loadBridge(function (err, api) {
         else if (data.state[req.query.key])
           res.json(data.state[req.query.key])
         else
-          res.send('That value does not exists on Bulb ' + req.params.id)
+          res.status(404).send({ error: 'Value not available' })
+      })
+    })
+
+    router.get('/hueLights/:id/info', function (req, res, next) {
+      api.lightStatus(req.params.id)
+      .then(function (data) {
+        delete data['state']
+        delete data['pointsymbol']
+        res.json(data)
       })
     })
 
@@ -20,12 +29,10 @@ loadBridge(function (err, api) {
       api.lightStatus(req.params.id)
       .then(function (data) {
         Object.keys(req.body).forEach(function (key) {
-          console.log(data.state[key])
-          if (data.state[key] === undefined) {
+          if (!data.state[key]) {
             delete req.body[key]
           }
         })
-        console.log(req.body)
         api.setLightState(req.params.id, req.body)
         .then(function (result) {
           res.send(true)
