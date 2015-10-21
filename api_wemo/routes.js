@@ -41,6 +41,24 @@ router.get('/wemoBridge/:id', function (req, res, next) {
   }
 })
 
+router.get('/wemoBridge/:id/info', function (req, res, next) {
+  var device = devices.filter(function (elem) {
+    if (elem.macAddress === req.params.id && elem.deviceType === Wemo.DEVICE_TYPE.Bridge) return true
+  })
+  if (device.length > 0) {
+    var newDevice = {host: device[0]['host'],
+    port: device[0]['port'],
+    deviceType: device[0]['deviceType'],
+    friendlyName: device[0]['friendlyName'],
+    modelName: device[0]['modelName'],
+    modelNumber: device[0]['modelNumber']
+    }
+    res.json(newDevice)
+  } else {
+    res.status(404).send({ error: 'Not found' })
+  }
+})
+
 router.get('/wemoLights/:id', function (req, res, next) {
   var device = devices.filter(function (elem) {
     if (elem.deviceId === req.params.id && elem.currentState &&
@@ -57,6 +75,18 @@ router.get('/wemoLights/:id', function (req, res, next) {
   }
 })
 
+router.get('/wemoLights/:id/info', function (req, res, next) {
+  var device = devices.filter(function (elem) {
+    if (elem.deviceId === req.params.id && elem.currentState &&
+    elem.capabilities) return true
+  })
+  if (device.length > 0) {
+    res.json(device)
+  } else {
+    res.status(404).send({ error: 'Not found' })
+  }
+})
+
 router.get('/wemoSwitch/:id', function (req, res, next) {
   var device = devices.filter(function (elem) {
     if (elem.macAddress === req.params.id && (elem.deviceType === Wemo.DEVICE_TYPE.Switch ||
@@ -68,6 +98,25 @@ router.get('/wemoSwitch/:id', function (req, res, next) {
       res.json(device[0][switchvalues[req.query.key]])
     else
       res.status(404).send({ error: 'Value not available' })
+  } else {
+    res.status(404).send({ error: 'Not found' })
+  }
+})
+
+router.get('/wemoSwitch/:id/info', function (req, res, next) {
+  var device = devices.filter(function (elem) {
+    if (elem.macAddress === req.params.id && (elem.deviceType === Wemo.DEVICE_TYPE.Switch ||
+    elem.deviceType === Wemo.DEVICE_TYPE.Insight)) return true
+  })
+  if (device.length > 0) {
+    var newDevice = {host: device[0]['host'],
+    port: device[0]['port'],
+    deviceType: device[0]['deviceType'],
+    friendlyName: device[0]['friendlyName'],
+    modelName: device[0]['modelName'],
+    modelNumber: device[0]['modelNumber']
+    }
+    res.json(newDevice)
   } else {
     res.status(404).send({ error: 'Not found' })
   }
