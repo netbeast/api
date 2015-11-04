@@ -5,7 +5,8 @@ var async = require('async')
 var exec = require('child_process').exec
 
 function resource (top) {
-  var location = 'all' // DARLE UNA PENSADA A ESTO (DIFF TOPIC LOC ??)
+  var location = '2'
+  var textlocation = '\'2\''
   var group = '1'
   var textgroup = '\'1\''
   var topic = top
@@ -20,6 +21,7 @@ function resource (top) {
     //  Specified the location of the objects
     at: function (loc) {
       location = loc
+      textlocation = 'location'
       return core
     },
 
@@ -29,7 +31,7 @@ function resource (top) {
       var promise = new Promise(function (resolve, reject) {
         if (args === undefined) {
           request.del('http://localhost:3000/resources?' + texttopic + '=' + topic +
-          '&location=' + location + '&' + textgroup + '=' + group,
+          '&' + textlocation + '=' + location + '&' + textgroup + '=' + group,
           function (err, resp, body) {
             if (err) reject(err)
             else {
@@ -47,7 +49,7 @@ function resource (top) {
           })
           if (valid === true) {
             request.del('http://localhost:3000/resources?' + texttopic + '=' + topic +
-            '&location=' + location + '&' + textgroup + '=' + group + q,
+            '&' + textlocation + '=' + location + '&' + textgroup + '=' + group + q,
             function (err, resp, body) {
               if (err) reject(err)
               else {
@@ -55,7 +57,7 @@ function resource (top) {
               }
             })
           } else
-            reject('Incorrect arguments')
+            reject({error: 'Incorrect arguments', data: {}})
         }
       })
 
@@ -67,17 +69,17 @@ function resource (top) {
       //  Creating a promise
       var promise = new Promise(function (resolve, reject) {
         request.get('http://localhost:3000/resources?method=get&' + texttopic + '=' + topic +
-        '&location=' + location + '&' + textgroup + '=' + group,
+        '&' + textlocation + '=' + location + '&' + textgroup + '=' + group,
         function (err, resp, body) {
           if (err) reject(err)
           else {
             body = JSON.parse(body)
-            async.map(body, function (item, callback) {
+            async.map(body.data, function (item, callback) {
               if (key === undefined) {
                 request.get('http://localhost' + item['hook'], function (err, resp, body) {
                   if (err) callback(err)
                   else {
-                    callback(null, {id: item['id'], location: item['location'], result: body})
+                    callback(null, {id: item['id'], app: item['app'], location: item['location'], result: body})
                   }
                 })
               } else {
@@ -107,11 +109,12 @@ function resource (top) {
         function (err, resp, body) {
           if (err) reject(err)
           else {
-            var item = JSON.parse(body)
+            body = JSON.parse(body)
+            var item = body.data
             request.get('http://localhost' + item['hook'], function (err, resp, body) {
               if (err) reject(err)
               else {
-                resolve({id: item['id'], location: item['location'], result: body})
+                resolve({id: item['id'], app: item['app'], location: item['location'], result: body})
               }
             })
           }
@@ -138,7 +141,7 @@ function resource (top) {
           if (err) reject(err)
           else {
             body = JSON.parse(body)
-            async.map(body, function (item, callback) {
+            async.map(body.data, function (item, callback) {
               request.get('http://localhost' + item['hook'] + '/info', function (err, resp, body) {
                 if (err) callback(err)
                 else {
@@ -170,12 +173,12 @@ function resource (top) {
       //  Creating a promise
       var promise = new Promise(function (resolve, reject) {
         request.get('http://localhost:3000/resources?method=set&topic=' + topic +
-        '&location=' + location + '&' + textgroup + '=' + group,
+        '&' + textlocation + '=' + location + '&' + textgroup + '=' + group,
         function (err, resp, body) {
           if (err) reject(err)
           else {
             body = JSON.parse(body)
-            async.map(body, function (item, callback) {
+            async.map(body.data, function (item, callback) {
               request.post({url: 'http://localhost' + item['hook'], json: args}, function (err, resp, body) {
                 if (err) callback(err)
                 else {
@@ -251,17 +254,7 @@ function resource (top) {
 
 module.exports = resource
 
-resource().obtainAll()
-.then(function (data) {
-  console.log('success')
-  console.log(data)
-})
-.catch(function (data) {
-  console.log('error')
-  console.log(data)
-})
-
-// resource('lights').delete({id: 164, app: 'PhilipsHue'})
+// resource().obtainAll()
 // .then(function (data) {
 //   console.log('success')
 //   console.log(data)
@@ -270,3 +263,13 @@ resource().obtainAll()
 //   console.log('error')
 //   console.log(data)
 // })
+
+resource('lights').set({on: true, hue: 24704, sat: 255, bri: 100})
+.then(function (data) {
+  console.log('success')
+  console.log(data)
+})
+.catch(function (data) {
+  console.log('error')
+  console.log(data)
+})

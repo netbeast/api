@@ -5,7 +5,8 @@ var async = require('async')
 var resource = require('./resource')
 
 function scene (sceneid) {
-  var location = 'all'
+  var location = 'none'
+  var textlocation = '\'none\''
 
   var core = {
     // Add a device to a given scene
@@ -17,37 +18,48 @@ function scene (sceneid) {
           if (err) reject(err)
           else {
             body = JSON.parse(body)
-            var hook = body[0]['hook']
+            var hook = body.data[0]['hook']
             var state = {
               status: null,
               bri: null,
-              color: null
+              hue: null,
+              sat: null
             }
             request.get('http://localhost' + hook + '?key=on', function (err, resp, body) {
               if (err) reject(err)
               else {
-                state.status = body
+                body = JSON.parse(body)
+                state.status = body.data
                 request.get('http://localhost' + hook + '?key=bri', function (err, resp, body) {
                   if (err) reject(err)
                   else {
-                    state.bri = body
-                    request.get('http://localhost' + hook + '?key=color', function (err, resp, body) {
+                    body = JSON.parse(body)
+                    state.bri = body.data
+                    request.get('http://localhost' + hook + '?key=hue', function (err, resp, body) {
                       if (err) reject(err)
                       else {
-                        state.color = body
-                        //  Registra dispositivo en la escena
-                        request.post({ url: 'http://localhost:3000/scenes',
-                        json: {
-                          id: deviceid,
-                          sceneid: sceneid,
-                          location: location,
-                          status: state.status,
-                          bri: state.bri,
-                          color: state.color
-                        }},
-                        function (err, resp, body) {
+                        body = JSON.parse(body)
+                        state.hue = body.data
+                        request.get('http://localhost' + hook + '?key=sat', function (err, resp, body) {
                           if (err) reject(err)
-                          resolve(true)
+                          else {
+                            body = JSON.parse(body)
+                            state.sat = body.data
+                            //  Registra dispositivo en la escena
+                            request.post({ url: 'http://localhost:3000/scenes',
+                            json: {
+                              id: deviceid,
+                              sceneid: sceneid,
+                              location: location,
+                              status: state.status,
+                              bri: state.bri,
+                              color: state.color
+                            }},
+                            function (err, resp, body) {
+                              if (err) reject(err)
+                              resolve({error: {}, data: true})
+                            })
+                          }
                         })
                       }
                     })
@@ -67,7 +79,7 @@ function scene (sceneid) {
       var promise = new Promise(function (resolve, reject) {
         core.get()
         .then(function (devices) {
-          devices.forEach(function (device) {
+          devices.data.forEach(function (device) {
             resource.set(device.id, {on: device.status, bri: device.bri, color: device.color})
           })
         })
@@ -81,6 +93,7 @@ function scene (sceneid) {
     //  Specified the location of the objects
     at: function (loc) {
       location = loc
+      textlocation = 'location'
       return core
     },
 
@@ -105,7 +118,6 @@ function scene (sceneid) {
     createCustom: function (states) {
       var promise = new Promise(function (resolve, reject) {
         async.map(states, function (device, callback) {
-          console.log(device)
           //  Registra dispositivo en la escena
           request.post({ url: 'http://localhost:3000/scenes',
           json: {
@@ -122,7 +134,7 @@ function scene (sceneid) {
           })
         }, function (err, results) {
           if (err) return reject(err)
-          resolve(true)
+          resolve({error: {}, data: true})
         })
       })
       return promise
@@ -134,7 +146,7 @@ function scene (sceneid) {
         request.del('http://localhost:3000/scenes?sceneid=' + sceneid,
         function (err, resp, body) {
           if (err) reject(err)
-          else resolve(true)
+          else resolve({error: {}, data: true})
         })
       })
       return promise
@@ -146,7 +158,7 @@ function scene (sceneid) {
         request.del('http://localhost:3000/scenes?sceneid=' + sceneid + '&id=' + deviceid,
         function (err, resp, body) {
           if (err) reject(err)
-          else resolve(true)
+          else resolve({error: {}, data: true})
         })
       })
       return promise
@@ -158,8 +170,8 @@ function scene (sceneid) {
         request.get('http://localhost:3000/scenes?sceneid=' + sceneid,
         function (err, resp, body) {
           if (err) reject(err)
-          else if (body === 'No Row Finded!') reject(body)
-          else resolve(JSON.parse(body))
+          else if (body.error === 'No Row Finded!') reject(body.error)
+          else resolve(body)
         })
       })
       return promise
@@ -171,13 +183,13 @@ function scene (sceneid) {
         request.get('http://localhost:3000/scenes?',
         function (err, resp, body) {
           if (err) reject(err)
-          else if (body === 'No Row Finded!') reject(body)
+          else if (body.error === 'No Row Finded!') reject({error: body.error, data: {}})
           else {
             var scenes = []
-            JSON.parse(body).forEach(function (id) {
+            JSON.parse(body.data).forEach(function (id) {
               scenes.push(id['sceneid'])
             })
-            resolve(scenes)
+            resolve({error: {}, data: scenes})
           }
         })
       })
@@ -221,10 +233,11 @@ module.exports = scene
 
 var state = [{
   id: '12',
-  location: 'all',
+  location: 'none',
   on: '1',
   bri: '254',
-  color: 'blue'
+  hue: '30000',
+  sat: '255'
 }]
 
 scene().getScenes()
