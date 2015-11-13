@@ -1,14 +1,15 @@
 {
-  "name": "nb-resources",
+  "name": "netbeast",
   "version": "0.0.1",
   "description": "Resources for node.js wrapper",
   "main": "index.js",
   "scripts": {
-    "test": "npm test"
+    "test": "npm test",
+    "app": "node index.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/netbeast-co/nb-resources.git"
+    "url": "https://github.com/netbeast/nb-resources.git"
   },
   "keywords": [
     "netbeast",
@@ -20,9 +21,9 @@
   "author": "staff@netbeast.co",
   "license": "GPL3",
   "bugs": {
-    "url": "https://github.com/netbeast-co/nb-resources/issues"
+    "url": "https://github.com/netbeast/nb-resources/issues"
   },
-  "homepage": "https://github.com/netbeast-co/nb-resources",
+  "homepage": "https://github.com/netbeast/nb-resources",
   "dependencies": {
     "async": "^1.4.2",
     "bluebird": "^2.10.0",
