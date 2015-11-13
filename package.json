@@ -34,10 +34,7 @@
     "http": "0.0.0",
     "mocha": "^2.3.2",
     "morgan": "^1.6.1",
-    "node-hue-api": "^1.1.2",
-    "node-lifx": "^0.2.1",
     "request": "^2.62.0",
-    "socket.io": "^1.3.7",
-    "wemo-client": "^0.3.0"
+    "socket.io": "^1.3.7"
   }
 }
