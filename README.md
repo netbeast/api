@@ -10,7 +10,7 @@ This API is quite new so it is continuously changing and growing. As it matures,
 *   2 - experimental
 *   1 - deprecated
 
-###Supported devides###
+###Supported devices###
 
 With this API you can control this devices
 
@@ -23,6 +23,7 @@ With this API you can control this devices
 -   [ ] Chromecast
 -   [ ] Sonos
 -   [ ] Lifx
+-   ...
 
 ###How to use it?###
 
@@ -51,7 +52,7 @@ resources('lights').get()
 ###Arguments###
 
 Each device can support specific parameters. 
-Bridge or Switch can be switched on or off. If you try to set an unsupported parameter to a switch (example, .set({bri: 255})) you will return a soft error. The process keep working but send you a warning.
+Bridge or Switch can be switched on or off. If you try to set an unsupported parameter to a switch (for example the brightness, .set({bri: 255})) you will return a soft error. The process keep working but send you a warning.
 
 Here is a list of supported arguments for each device.
 *   switch & bridge
@@ -79,6 +80,34 @@ All the methods act as a promise and they always return a json object like this:
 }
 ````
 
+###Devices###
+This object include useful methods for managing different aspects of the Smart devices
+
+####devices.group(name , devicesId)####
+This functión allows us to make group of devices. The argument name defines de group name. DevicesId will be an array of ids of the devices that should be grouped.
+
+````javascript
+var nb = require('netbeast')
+
+var args = [1,3, 7 }
+
+nb.devices().group('roof', args)
+.then(function (data) {}
+.catch(function (error) {}
+````
+
+####devices.discover([brand-name])####
+
+This function allows us to activate the discovery process. With the brand-name parameter you can specify a concrete app (like belkin-wemo, philips-hue). If you don´t include this argument, the discovery will be apply to all available brands.
+
+````javascript
+var nb = require('netbeast')
+
+nb.devices().discovery('belkin-wemo')
+.then(function (data) {}
+.catch(function (error) {}
+````
+
 ###Resources###
 
 A resource contain information about every smart device connected through the dashboard. It has the following fields:
@@ -89,7 +118,7 @@ id          | Identifies the resource in the db | Integer (automatic) | -
 app         | show the device brand | String (belkin-wemo, philips-hue) | -
 location    | Location of the devices in the house | String (up to developer) | none
 topic       | Define the device field of actuation | String (lights.bridge,switch) | -
-group       | Resources con be grouped | String (up to developer) | none
+group       | Resources can be grouped | String (up to developer) | none
 
 Resources has methods for:
 *   Obtain the current state of devices, for expample
@@ -122,7 +151,7 @@ In this example, we get information about all the lights placed at the kitchen.
 
 ####resources([topic]).delete([args])####
 
-The delete method allow us to remove resources from the database. The args argument is json object with more properties of the device that should be deleted.
+The delete method allow us to remove resources from the database. You can use an argument (args: json object) for this method that select an specific property of devices.
 
 ````javascript
 var nb = require('netbeast')
@@ -148,7 +177,7 @@ The deleteById method allows us to remove resources from the database. With the 
 ````javascript
 var nb = require('netbeast')
 
-nb.resources().delete(1)
+nb.resources().deleteById(1)
 .then(function (data) {}
 .catch(function (error) {}
 ````
@@ -367,35 +396,6 @@ Arguments are not needed on this function.
 var nb = require('netbeast')
 
 nb.scene().getScene()
-.then(function (data) {}
-.catch(function (error) {}
-````
-
-
-###Devices###
-This object include useful methods for managing different aspects of the Smart devices
-
-####devices.group(name , devicesId)####
-This functión allows us to make group of devices. The argument name defines de group name. DevicesId will be an array of ids of the devices that should be grouped.
-
-````javascript
-var nb = require('netbeast')
-
-var args = [1,3, 7 }
-
-nb.devices().group('roof', args)
-.then(function (data) {}
-.catch(function (error) {}
-````
-
-####devices.discover([brand-name])####
-
-This function allows us to activate the discovery process. With the brand-name parameter you can specify a concrete app (like belkin-wemo, philips-hue). If you don´t include this argument, the discovery will be apply to all available brands.
-
-````javascript
-var nb = require('netbeast')
-
-nb.devices().discovery('belkin-wemo')
 .then(function (data) {}
 .catch(function (error) {}
 ````
