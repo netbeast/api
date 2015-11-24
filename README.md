@@ -72,7 +72,7 @@ nb.resources('lights').set({on: true, bri: 200, hue: 0, sat: 255})
 ###Output###
 
 All the methods act as a promise and they always return a json object like this:
-`````json
+`````
 {
     error:  
     data:
