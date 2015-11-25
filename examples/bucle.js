@@ -1,9 +1,8 @@
-var resource = require('../resource')
+var resource = require('../lib/resource')
 
+var color = 0
 setInterval(function () {
-  var colorHue = Math.floor((Math.random() * 65535) + 1)
+  color += 2000
+  var colorHue = Math.floor(color % 65535)
   resource('lights').set({on: 1, bri: 255, hue: colorHue, sat: 255})
-  setTimeout(function () {
-    resource('lights').set({on: 0})
-  }, 7000)
-}, 10000)
+}, 1000)
