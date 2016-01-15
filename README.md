@@ -10,7 +10,7 @@ This API is quite new so it is continuously changing and growing. As it matures,
 *   2 - experimental
 *   1 - deprecated
 
-### Supported devices
+### MSupported devices
 
 With this API you can control this devices
 

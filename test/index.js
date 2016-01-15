@@ -1,18 +1,23 @@
-var resource = require('../resource')
-var scene = require('../scene')
-var discoverDevices = require('../group')
+var resource = require('../lib/resource')
+var scene = require('../lib/scene')
+var discoverDevices = require('../lib/devices')
 var request = require('request')
 
-// discoverDevices('belkin-wemo')
+var color = 90
 
-// resource().get()
-// .then(function (data) {
-//   console.log('###  SUCCESS  ###')
-//   console.log(data)
-// }).catch(function (data) {
-//   console.log('###  ERROR  ###')
-//   console.log(data)
-// })
+setInterval(function () {
+  var color = Math.floor(Math.random() * 360)
+  resource('lights').set({brightness: 100, saturation: 100, hue: color})
+  .then(function (data) {
+    console.log('###  SUCCESS  ###')
+    console.log(data)
+  }).catch(function (data) {
+    console.log('###  ERROR  ###')
+    console.log(data)
+  })
+  console.log(color)
+  color ++
+}, 5000)
 
 // var escena = [ { id: 1,
 //        location: 'none',
@@ -27,9 +32,9 @@ var request = require('request')
 //       }
 //      ]
 
-// scene('LUISGAY').apply()
+// scene('').apply()
 
-// scene('LUISGAY').get()
+// scene('').get()
 // .then(function (data) {
 //   console.log('###  SUCCESS  ###')
 //   console.log(data)
@@ -38,7 +43,7 @@ var request = require('request')
 //   console.error(data.stack)
 // })
 
-// scene('LUISGAY').createCustom(escena)
+// scene('').createCustom(escena)
 // .then(function (data) {
 //   console.log('###  SUCCESS  ###')
 //   console.log(data)
