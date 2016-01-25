@@ -1,4 +1,4 @@
-var resources = require('../lib/resource')
+var resources = require('../lib/resources')
 
 var color = 0
 setInterval(function () {
