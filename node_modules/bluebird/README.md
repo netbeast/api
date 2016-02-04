@@ -11,13 +11,19 @@
 
 Bluebird is a fully featured promise library with focus on innovative features and performance
 
-See the [bluebird website](http://bluebirdjs.com/docs/getting-started.html) for further documentation, references and instructions.
+See the [**bluebird website**](http://bluebirdjs.com/docs/getting-started.html) for further documentation, references and instructions. See the [**API reference**](http://bluebirdjs.com/docs/api-reference.html) here.
 
 For bluebird 2.x documentation and files, see the [2.x tree](https://github.com/petkaantonov/bluebird/tree/2.x).
 
 # Questions and issues
 
 The [github issue tracker](https://github.com/petkaantonov/bluebird/issues) is **_only_** for bug reports and feature requests. Anything else, such as questions for help in using the library, should be posted in [StackOverflow](http://stackoverflow.com/questions/tagged/bluebird) under tags `promise` and `bluebird`.
+
+
+
+## Thanks
+
+Thanks to BrowserStack for providing us with a free account which lets us support old browsers like IE8. 
 
 # License
 
@@ -42,3 +48,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
