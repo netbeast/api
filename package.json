@@ -1,6 +1,10 @@
 {
   "name": "netbeast",
+<<<<<<< HEAD
   "version": "1.0.1",
+=======
+  "version": "1.0.0",
+>>>>>>> 092300240bcde52cbdb2b540245e2273a466b3c6
   "description": "Resources for node.js wrapper",
   "main": "index.js",
   "scripts": {
@@ -18,9 +22,13 @@
     "home",
     "automation"
   ],
+<<<<<<< HEAD
   "author": {
     "name": "staff@netbeast.co"
   },
+=======
+  "author": "staff@netbeast.co",
+>>>>>>> 092300240bcde52cbdb2b540245e2273a466b3c6
   "license": "GPL3",
   "bugs": {
     "url": "https://github.com/netbeast/api/issues"
@@ -40,6 +48,7 @@
     "mime": "^1.3.4",
     "mqtt": "^1.7.0",
     "superagent-bluebird-promise": "^3.0.0"
+<<<<<<< HEAD
   },
   "gitHead": "00f93ae03ef8b2f5adef91edd5050c0bb0549aee",
   "_id": "netbeast@1.0.1",
@@ -67,4 +76,7 @@
   },
   "directories": {},
   "_resolved": "https://registry.npmjs.org/netbeast/-/netbeast-1.0.1.tgz"
+=======
+  }
+>>>>>>> 092300240bcde52cbdb2b540245e2273a466b3c6
 }
