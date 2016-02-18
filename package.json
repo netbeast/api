@@ -1,6 +1,10 @@
 {
   "name": "netbeast",
+<<<<<<< HEAD
+  "version": "1.0.1",
+=======
   "version": "1.0.0",
+>>>>>>> 092300240bcde52cbdb2b540245e2273a466b3c6
   "description": "Resources for node.js wrapper",
   "main": "index.js",
   "scripts": {
@@ -18,7 +22,13 @@
     "home",
     "automation"
   ],
+<<<<<<< HEAD
+  "author": {
+    "name": "staff@netbeast.co"
+  },
+=======
   "author": "staff@netbeast.co",
+>>>>>>> 092300240bcde52cbdb2b540245e2273a466b3c6
   "license": "GPL3",
   "bugs": {
     "url": "https://github.com/netbeast/api/issues"
@@ -38,5 +48,35 @@
     "mime": "^1.3.4",
     "mqtt": "^1.7.0",
     "superagent-bluebird-promise": "^3.0.0"
+<<<<<<< HEAD
+  },
+  "gitHead": "00f93ae03ef8b2f5adef91edd5050c0bb0549aee",
+  "_id": "netbeast@1.0.1",
+  "_shasum": "ca9a34ee6759d6eda7426316fcdbadf778a42c93",
+  "_from": "netbeast@>=1.0.0 <2.0.0",
+  "_npmVersion": "2.7.4",
+  "_nodeVersion": "0.12.1",
+  "_npmUser": {
+    "name": "netbeast",
+    "email": "staff@netbeast.co"
+  },
+  "dist": {
+    "shasum": "ca9a34ee6759d6eda7426316fcdbadf778a42c93",
+    "tarball": "http://registry.npmjs.org/netbeast/-/netbeast-1.0.1.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "netbeast",
+      "email": "staff@netbeast.co"
+    }
+  ],
+  "_npmOperationalInternal": {
+    "host": "packages-5-east.internal.npmjs.com",
+    "tmp": "tmp/netbeast-1.0.1.tgz_1455182268245_0.3566680096555501"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/netbeast/-/netbeast-1.0.1.tgz"
+=======
   }
+>>>>>>> 092300240bcde52cbdb2b540245e2273a466b3c6
 }
