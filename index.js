@@ -1,12 +1,7 @@
-var NETBEAST = require('./lib/init')() // load env variables if needed or crash program
-
-// We must require tiny wrapper around superagent that
-// enables it to return a promise. Call .promise() instead
-// od .end() to execute a superagent request.
-var request = require('superagent-bluebird-promise')
 var Promise = require('bluebird')
-var mqtt = require('mqtt')
+var request = require('superagent-bluebird-promise')
 var chalk = require('chalk')
+var mqtt = require('mqtt')
 
 var scan = require('./lib/scan')
 
@@ -15,19 +10,20 @@ var group = null
 var topic = null
 
 function netbeast (top) {
+  var NETBEAST = require('./lib/init')() // load env variables if needed or crash program
   const HTTP_API = 'http://' + NETBEAST + '/api/resources'
   const HTTP_SCENES = 'http://' + NETBEAST + '/api/scenes'
   const APP_PROXY = 'http://' + NETBEAST + '/i/'
 
   if (top) topic = top
 
-  var core = {
+    var core = {
     // Add a device to a given scene
     addDeviceScene: function (deviceid) {
       return request.get(HTTP_API).query({ id: deviceid })
       .then(function (res) {
         if (!res.body.length) return Promise.reject('These resources doesn´t exists!')
-        return request.get(APP_PROXY + res.body[0].app + res.body[0].hook)
+          return request.get(APP_PROXY + res.body[0].app + res.body[0].hook)
         .then(function (res) {
           //  Registra dispositivo en la escena
           var device = {
@@ -44,7 +40,7 @@ function netbeast (top) {
     // Apply the values saved on a Scene
     applyScene: function () {
       if (!topic) return Promise.reject('There isn´t any scene selected')
-      return core.getScene()
+        return core.getScene()
       .then(function (res) {
         res.body.forEach(function (device) {
           return core.setById(device.id, JSON.parse(device.state))
@@ -66,18 +62,18 @@ function netbeast (top) {
 
     create: function (args) {
       if (!topic) return Promise.reject(new Error('Topic required'))
-      if (!args.hook) return Promise.reject(new Error('Hook required'))
-      if (!args.app) return Promise.reject(new Error('App name required'))
+        if (!args.hook) return Promise.reject(new Error('Hook required'))
+          if (!args.app) return Promise.reject(new Error('App name required'))
 
-      var query = queryCustom(args)
-      return request.post(HTTP_API)
-      .send(query)
-      .then(function (resp) {
-        return Promise.resolve(resp.body)
-      }).catch(function (err) {
-        if (err) return Promise.reject(err)
-      })
-    },
+            var query = queryCustom(args)
+          return request.post(HTTP_API)
+          .send(query)
+          .then(function (resp) {
+            return Promise.resolve(resp.body)
+          }).catch(function (err) {
+            if (err) return Promise.reject(err)
+          })
+        },
 
     //  Create a Scene with the given sates of the devices
     createCustomScene: function (states) {
@@ -88,8 +84,8 @@ function netbeast (top) {
         for (var key in device) {
           if (['id', 'sceneid', 'state'].indexOf(key) < 0) delete device[key]
         }
-        return request.post(HTTP_SCENES).send(device).promise()
-      })
+      return request.post(HTTP_SCENES).send(device).promise()
+    })
     },
 
     // Create a Scene with the current sates of the devices
@@ -123,33 +119,6 @@ function netbeast (top) {
       return request.del(HTTP_SCENES).query({sceneid: topic}).promise()
     },
 
-    // Search for devices of a given brand (or all)
-    discoverDevices: function (app) {
-      var apps = []
-      var promise = new Promise(function (resolve, reject) {
-        request.get(process.env.NETBEAST + '/plugins')
-        .then(function (res) {
-          for (var aplication in res.body) {
-            if (apps.indexOf(res.body[aplication].name) < 0) apps.push(res.body[aplication].name)
-          }
-
-          if (!app || app === 'all') {
-            apps.forEach(function (item) {
-              request.get(APP_PROXY + item + '/discover')
-            })
-            setTimeout(function () {
-              return resolve(apps)
-            }, 10000)
-          } else if (apps.indexOf(app) >= 0) {
-            return request.get(APP_PROXY + app + '/discover')
-          } else {
-            return reject('App not supported yet')
-          }
-        })
-      })
-      return promise
-    },
-
     emit: function (msg) {
       // Log notification through console
       var str = chalk.bgCyan('ws') +
@@ -157,17 +126,17 @@ function netbeast (top) {
 
       switch (msg.emphasis) {
         case 'error':
-          str = str + chalk.bgRed(msg.body)
-          break
+        str = str + chalk.bgRed(msg.body)
+        break
         case 'warning':
-          str = str + chalk.bgYellow(msg.body)
-          break
+        str = str + chalk.bgYellow(msg.body)
+        break
         case 'info':
-          str = str + chalk.bgBlue(msg.body)
-          break
+        str = str + chalk.bgBlue(msg.body)
+        break
         case 'success':
-          str = str + chalk.bgGreen(msg.body)
-          break
+        str = str + chalk.bgGreen(msg.body)
+        break
       }
 
       var client = mqtt.connect('ws://' + process.env.NETBEAST)
@@ -179,19 +148,6 @@ function netbeast (top) {
       core.emit({ emphasis: 'error', body: body, title: title })
     },
 
-    find: function () {
-      var promise = new Promise(function (resolve, reject) {
-        scan(function (beast) {
-          if (beast) {
-            process.env.NETBEAST = beast[0].address + ':' + beast[0].port
-            resolve(beast[0].address, beast[0].port)
-          }
-          reject()
-        })
-      })
-      return promise
-    },
-
     //  Method that performs the get request
     get: function (args) {
       var queryString = normalizeArguments(args)
@@ -201,14 +157,14 @@ function netbeast (top) {
       .then(function (res) {
         if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
         // data should be directly in res.body, which must be an array
-        return Promise.map(res.body, function (item, done) {
-          return request.get(APP_PROXY + item.app + item.hook).query(queryString)
-          .then(function (res) {
-            item.result = (Object.keys(res.body).length) ? res.body : res.text
-            return Promise.resolve(item)
-          })
+      return Promise.map(res.body, function (item, done) {
+        return request.get(APP_PROXY + item.app + item.hook).query(queryString)
+        .then(function (res) {
+          item.result = (Object.keys(res.body).length) ? res.body : res.text
+          return Promise.resolve(item)
         })
       })
+    })
     },
 
     //  Obtain all the Scene´s name already declared
@@ -221,7 +177,7 @@ function netbeast (top) {
       return request.get(HTTP_API).query({ id: id })
       .then(function (res) {
         if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-        var item = res.body[0]
+          var item = res.body[0]
         return request.get(APP_PROXY + item.app + item.hook)
         .then(function (res) {
           item.result = res.body
@@ -269,12 +225,12 @@ function netbeast (top) {
 
       if (!topic) return Promise.reject(new Error('Topic required'))
 
-      client.on('message', function (topic, message) {
-        if (message) {
-          message = JSON.parse(message.toString())
-          callback(null, message)
-        }
-      })
+        client.on('message', function (topic, message) {
+          if (message) {
+            message = JSON.parse(message.toString())
+            callback(null, message)
+          }
+        })
     },
 
     //  Method that performs the set request
@@ -283,13 +239,13 @@ function netbeast (top) {
       .then(function (res) {
         if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
 
-        return Promise.map(res.body, function (item, done) {
-          return request.post(APP_PROXY + item.app + item.hook).send(args)
-          .then(function (res) {
-            item.result = (Object.keys(res.body).length) ? res.body : res.text
-            return Promise.resolve(item)
+          return Promise.map(res.body, function (item, done) {
+            return request.post(APP_PROXY + item.app + item.hook).send(args)
+            .then(function (res) {
+              item.result = (Object.keys(res.body).length) ? res.body : res.text
+              return Promise.resolve(item)
+            })
           })
-        })
       })
     },
 
@@ -300,7 +256,7 @@ function netbeast (top) {
       .then(function (res) {
         if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
 
-        var item = res.body[0]
+          var item = res.body[0]
         return request.post(APP_PROXY + item.app + item.hook).send(args)
         .then(function (res) {
           item.result = (Object.keys(res.body).length) ? res.body : res.text
@@ -324,19 +280,19 @@ function netbeast (top) {
 function queryCustom (args) {
   var queryString = args || {}
   if (location) queryString.location = location
-  if (group) queryString.groupname = group
-  if (topic) queryString.topic = topic
-  return queryString
-}
+    if (group) queryString.groupname = group
+      if (topic) queryString.topic = topic
+        return queryString
+    }
 
-function queryCustomScene (args) {
-  var queryString = args || {}
-  if (location) queryString.location = location
-  if (topic) queryString.sceneid = topic
-  return queryString
-}
+    function queryCustomScene (args) {
+      var queryString = args || {}
+      if (location) queryString.location = location
+        if (topic) queryString.sceneid = topic
+          return queryString
+      }
 
-function normalizeArguments (args) {
+      function normalizeArguments (args) {
   //  Prepare query to be an object out of args unless it is undefined
   var query = typeof args === 'undefined' ? undefined : {}
   // if it is an string turn it into an array
@@ -349,6 +305,50 @@ function normalizeArguments (args) {
   }
 
   return query
+}
+
+netbeast.find = function () {
+  return new Promise(function (resolve, reject) {
+    scan(function (beast) {
+      if (beast && beast[0]) {
+        netbeast.set(beast[0]) // set environment variable
+        return resolve(beast)
+      }
+      
+      return reject(new Error('No netbeasts found in subnet'))
+    })
+  })
+}
+
+netbeast.topic = netbeast
+
+netbeast.set = function (networkObject) {
+  process.env.NETBEAST = networkObject.address + ':' + networkObject.port
+  return netbeast
+}
+
+// Search for devices of a given brand (or all)
+netbeast.discoverDevices = function (app) {
+  var apps = []
+  var promise = new Promise(function (resolve, reject) {
+    request.get(process.env.NETBEAST + '/plugins')
+    .then(function (res) {
+      for (var aplication in res.body) {
+        if (apps.indexOf(res.body[aplication].name) < 0) apps.push(res.body[aplication].name)
+      }
+
+    if (!app || app === 'all') {
+      return Promise.each(apps, function (item) {
+        request.get(APP_PROXY + item + '/discover').promise()
+      })
+    } else if (apps.indexOf(app) >= 0) {
+      return request.get(APP_PROXY + app + '/discover')
+    } else {
+      return reject(new Error('App not supported yet'))
+    }
+  })
+  })
+  return promise
 }
 
 module.exports = netbeast
