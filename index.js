@@ -307,7 +307,7 @@ function queryCustom (args) {
   return query
 }
 
-netbeast.find = function () {
+netbeast.scan = function () {
   return new Promise(function (resolve, reject) {
     scan(function (beast) {
       if (beast && beast[0]) {
@@ -318,6 +318,11 @@ netbeast.find = function () {
       return reject(new Error('No netbeasts found in subnet'))
     })
   })
+}
+
+netbeast.find = function () {
+  if (process.env.NETBEAST) return Promise.resolve(process.env.NETBEAST)
+  return netbeast.scan()
 }
 
 netbeast.topic = netbeast
