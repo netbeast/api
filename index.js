@@ -61,7 +61,7 @@ function netbeast (top) {
     },
 
     create: function (args) {
-      if (!topic) return Promise.reject(new Error('Topic required'))
+      if (!topic && !args.topic) return Promise.reject(new Error('Topic required'))
         if (!args.hook) return Promise.reject(new Error('Hook required'))
           if (!args.app) return Promise.reject(new Error('App name required'))
 
