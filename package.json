@@ -1,6 +1,6 @@
 {
   "name": "netbeast",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Resources for node.js wrapper",
   "main": "index.js",
   "scripts": {
