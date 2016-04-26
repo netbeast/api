@@ -248,37 +248,48 @@ describe('Request methods', function () {
     })
   })
 })
-/*
-describe('thing to do in a scene', function () {
-  it('applyScene Method', function (done) {
-    netbeast('watchfilm').addDeviceScene(294)
+var aux
+
+describe('Method with get', function () {
+  it('get Method', function (done) {
+    netbeast().get()
     .then(function (data) {
+      expect('lights').to.eql(data[0].topic)
+      done()
     })
   })
-})*/
-describe('Method with get', function () {
+
   it('get By Id Method', function (done) {
-    netbeast('lights').getById(298)
+    netbeast('lights').getById(aux)
     .then(function (data) {
-      console.log(data.body)
       expect('lights').to.eql(data.topic)
-      expect(298).to.eql(parseInt(data.id))
+      expect(307).to.eql(parseInt(data.id))
       done()
     })
   })
   it('get Method', function (done) {
     netbeast().get()
     .then(function (data) {
-      console.log('al menos algo hace')
+      expect('lights').to.eql(data[0].topic)
+      expect(307).to.eql(parseInt(data[0].id))
+      done()
     })
   })
 })
 
 describe('Method with set', function () {
-  it('set Method', function (done) {
-    netbeast().setById(296, {location: 'bathroom'})
+  it('set By Id Method', function (done) {
+    netbeast().setById(307, {power: 'off'})
     .then(function (data) {
-      console.log(data)
+      expect('off').to.eql(data.result.power)
+      done()
+    })
+  })
+  it('set Method', function (done) {
+    netbeast('lights').set({color: '#FF0080'})
+    .then(function (data) {
+      expect('#FF0080').to.eql(data[0].result.color)
+      done()
     })
   })
 })
