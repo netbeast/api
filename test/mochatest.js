@@ -240,19 +240,45 @@ describe('Request methods', function () {
       done()
     })
   })
-/*
   it('discoverDevices method', function (done) {
-    netbeast().discoverDevices('Sonos')
+    netbeast().discoverDevices('sonos')
+    .then(function (data) {
+      expect('sonos').to.be.oneOf(data)
+      done()
+    })
+  })
+})
+/*
+describe('thing to do in a scene', function () {
+  it('applyScene Method', function (done) {
+    netbeast('watchfilm').addDeviceScene(294)
+    .then(function (data) {
+    })
+  })
+})*/
+describe('Method with get', function () {
+  it('get By Id Method', function (done) {
+    netbeast('lights').getById(298)
+    .then(function (data) {
+      console.log(data.body)
+      expect('lights').to.eql(data.topic)
+      expect(298).to.eql(parseInt(data.id))
+      done()
+    })
+  })
+  it('get Method', function (done) {
+    netbeast().get()
+    .then(function (data) {
+      console.log('al menos algo hace')
+    })
+  })
+})
+
+describe('Method with set', function () {
+  it('set Method', function (done) {
+    netbeast().setById(296, {location: 'bathroom'})
     .then(function (data) {
       console.log(data)
     })
-  })*/
-})
-/*
-describe('Method that specify the location of the objects', function () {
-
-  it('at method', function (done) {
-    console.log(netbeast().at('kitchen'))
   })
 })
-*/
