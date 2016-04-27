@@ -54,6 +54,32 @@ function netbeast (top) {
       return core
     },
 
+    changeName: function (alias) {
+      if (!alias) return Promise.reject(new Error('Name required --> netbeast(<id>).changeName(<name>)'))
+      if (!topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeName(<name>)'))
+
+      return request.patch(HTTP_API + '?id=' + topic)
+      .send({alias: alias})
+      .then(function (resp) {
+        return Promise.resolve(resp.body)
+      }).catch(function (err) {
+        if (err) return Promise.reject(err)
+      })
+    },
+
+    changeLocation: function (alias) {
+      if (!alias) return Promise.reject(new Error('Location required --> netbeast(<id>).changeLocation(<location>)'))
+      if (!topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeLocation(<location>)'))
+
+      return request.patch(HTTP_API + '?id=' + topic)
+      .send({location: location})
+      .then(function (resp) {
+        return Promise.resolve(resp.body)
+      }).catch(function (err) {
+        if (err) return Promise.reject(err)
+      })
+    },
+
     create: function (args) {
       if (!topic && !args.topic) return Promise.reject(new Error('Topic required'))
       if (!args.hook) return Promise.reject(new Error('Hook required'))
