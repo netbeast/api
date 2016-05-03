@@ -3,6 +3,7 @@ const DASHBOARD_URL = 'localhost:8000'
 process.env.NETBEAST = 'localhost:40123'
 var netbeast = require("..")
 
+
 var should = require('chai').should()
 var expect = require('chai').expect
 var mqtt = require('mqtt')
@@ -37,7 +38,6 @@ describe('MQTT methods', function () {
 
     client.on('message', function (topic, message) {
       message = JSON.parse(message.toString())
-
       if (message.emphasis === 'error' && message.body === body && message.title === title) {
         done()
       }
@@ -94,7 +94,7 @@ describe('MQTT methods', function () {
 
   it('received notification with method on', function (done) {
     var msg = {power: true, brightness: 99, hue: 200, saturation: 80}
-    var client = mqtt.connect('ws://' + process.env.NETBEAST)
+    var client = mqtt.connect('ws://' + DASHBOARD_URL)
     setInterval(function () {
       client.publish('netbeast/topic', JSON.stringify(msg))
       client.end()
@@ -107,6 +107,7 @@ describe('MQTT methods', function () {
   })
 })
 
+/*
 describe('Find Method', function () {
   var a = netbeast().find()
   it('return the IP address and the port', function (done) {
@@ -116,7 +117,7 @@ describe('Find Method', function () {
       }
     })
   })
-})
+})*/
 
 describe('Request methods', function () {
 
@@ -240,56 +241,11 @@ describe('Request methods', function () {
       done()
     })
   })
-  it('discoverDevices method', function (done) {
-    netbeast().discoverDevices('sonos')
+/*  it('discoverDevices method', function (done) {
+    netbeast().discoverDevices('bulb-plugin')
     .then(function (data) {
       expect('sonos').to.be.oneOf(data)
       done()
     })
-  })
-})
-var aux
-
-describe('Method with get', function () {
-  it('get Method', function (done) {
-    netbeast().get()
-    .then(function (data) {
-      expect('lights').to.eql(data[0].topic)
-      done()
-    })
-  })
-
-  it('get By Id Method', function (done) {
-    netbeast('lights').getById(aux)
-    .then(function (data) {
-      expect('lights').to.eql(data.topic)
-      expect(307).to.eql(parseInt(data.id))
-      done()
-    })
-  })
-  it('get Method', function (done) {
-    netbeast().get()
-    .then(function (data) {
-      expect('lights').to.eql(data[0].topic)
-      expect(307).to.eql(parseInt(data[0].id))
-      done()
-    })
-  })
-})
-
-describe('Method with set', function () {
-  it('set By Id Method', function (done) {
-    netbeast().setById(307, {power: 'off'})
-    .then(function (data) {
-      expect('off').to.eql(data.result.power)
-      done()
-    })
-  })
-  it('set Method', function (done) {
-    netbeast('lights').set({color: '#FF0080'})
-    .then(function (data) {
-      expect('#FF0080').to.eql(data[0].result.color)
-      done()
-    })
-  })
+  })*/
 })
