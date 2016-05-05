@@ -150,35 +150,6 @@ function netbeast (top) {
       return request.del(HTTP_SCENES).query({sceneid: topic}).promise()
     },
 
-    emit: function (msg) {
-      // Log notification through console
-      var str = chalk.bgCyan('ws') +
-      chalk.bold.bgCyan(msg.title || '::')
-
-      switch (msg.emphasis) {
-        case 'error':
-        str = str + chalk.bgRed(msg.body)
-        break
-        case 'warning':
-        str = str + chalk.bgYellow(msg.body)
-        break
-        case 'info':
-        str = str + chalk.bgBlue(msg.body)
-        break
-        case 'success':
-        str = str + chalk.bgGreen(msg.body)
-        break
-      }
-
-      var client = mqtt.connect('ws://' + process.env.NETBEAST)
-      client.publish('netbeast/push', JSON.stringify(msg))
-      client.end()
-    },
-
-    error: function (body, title) {
-      core.emit({ emphasis: 'error', body: body, title: title })
-    },
-
     //  Method that performs the get request
     get: function (args) {
       var queryString = normalizeArguments(args)
@@ -257,9 +228,6 @@ function netbeast (top) {
       return promise
     },
 
-    info: function (body, title) {
-      core.emit({ emphasis: 'info', body: body, title: title })
-    },
 
     on: function (callback) {
       var client = mqtt.connect('ws://' + process.env.NETBEAST)
@@ -324,14 +292,6 @@ function netbeast (top) {
           return Promise.resolve(item)
         })
       })
-    },
-
-    success: function (body, title) {
-      core.emit({ emphasis: 'success', body: body, title: title })
-    },
-
-    warning: function (body, title) {
-      core.emit({ emphasis: 'warning', body: body, title: title })
     }
   }
   //  Adapter Pattern
@@ -391,6 +351,47 @@ netbeast.topic = netbeast
 netbeast.set = function (networkObject) {
   process.env.NETBEAST = networkObject.address + ':' + networkObject.port
   return netbeast
+}
+
+netbeast.emit = function (msg) {
+  // Log notification through console
+  var str = chalk.bgCyan('ws') +
+  chalk.bold.bgCyan(msg.title || '::')
+
+  switch (msg.emphasis) {
+    case 'error':
+      str = str + chalk.bgRed(msg.body)
+      break
+    case 'warning':
+      str = str + chalk.bgYellow(msg.body)
+      break
+    case 'info':
+      str = str + chalk.bgBlue(msg.body)
+      break
+    case 'success':
+      str = str + chalk.bgGreen(msg.body)
+      break
+  }
+
+  var client = mqtt.connect('ws://' + process.env.NETBEAST)
+  client.publish('netbeast/push', JSON.stringify(msg))
+  client.end()
+}
+
+netbeast.error = function (body, title) {
+  netbeast.emit({ emphasis: 'error', body: body, title: title })
+}
+
+netbeast.info = function (body, title) {
+  netbeast.emit({ emphasis: 'info', body: body, title: title })
+}
+
+netbeast.success = function (body, title) {
+  netbeast.emit({ emphasis: 'success', body: body, title: title })
+}
+
+netbeast.warning = function (body, title) {
+  netbeast.emit({ emphasis: 'warning', body: body, title: title })
 }
 
 // Search for devices of a given brand (or all)
