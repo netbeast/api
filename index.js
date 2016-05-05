@@ -18,24 +18,24 @@ function netbeast (top) {
   if (top) topic = top
 
   var core = {
-    // Add a device to a given scene
-    addDeviceScene: function (deviceid) {
-      return request.get(HTTP_API).query({ id: deviceid })
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject('These resources doesn´t exists!')
-        return request.get(APP_PROXY + res.body[0].app + res.body[0].hook)
-        .then(function (res) {
-          //  Registra dispositivo en la escena
-          var device = {
-            id: deviceid,
-            sceneid: topic,
-            location: location,
-            state: JSON.stringify(res.body)
-          }
-          return request.post(HTTP_SCENES).send(device).promise()
-        })
-      })
-    },
+    // // Add a device to a given scene
+    // addDeviceScene: function (deviceid) {
+    //   return request.get(HTTP_API).query({ id: deviceid })
+    //   .then(function (res) {
+    //     if (!res.body.length) return Promise.reject('These resources doesn´t exists!')
+    //     return request.get(APP_PROXY + res.body[0].app + res.body[0].hook)
+    //     .then(function (res) {
+    //       //  Registra dispositivo en la escena
+    //       var device = {
+    //         id: deviceid,
+    //         sceneid: topic,
+    //         location: location,
+    //         state: JSON.stringify(res.body)
+    //       }
+    //       return request.post(HTTP_SCENES).send(device).promise()
+    //     })
+    //   })
+    // },
 
     // Apply the values saved on a Scene
     applyScene: function () {
@@ -150,57 +150,57 @@ function netbeast (top) {
       return request.del(HTTP_SCENES).query({sceneid: topic}).promise()
     },
 
-    //  Method that performs the get request
-    get: function (args) {
-      var queryString = normalizeArguments(args)
-
-      queryString = (queryString === undefined) ? {} : queryString
-      return request.get(HTTP_API).query(queryCustom())
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-        // data should be directly in res.body, which must be an array
-        return Promise.map(res.body, function (item, done) {
-          return request.get(APP_PROXY + item.app + item.hook).query(queryString)
-          .then(function (res) {
-            item.result = (Object.keys(res.body).length) ? res.body : res.text
-            return Promise.resolve(item)
-          })
-        })
-      })
-    },
+    // //  Method that performs the get request
+    // get: function (args) {
+    //   var queryString = normalizeArguments(args)
+    //
+    //   queryString = (queryString === undefined) ? {} : queryString
+    //   return request.get(HTTP_API).query(queryCustom())
+    //   .then(function (res) {
+    //     if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+    //     // data should be directly in res.body, which must be an array
+    //     return Promise.map(res.body, function (item, done) {
+    //       return request.get(APP_PROXY + item.app + item.hook).query(queryString)
+    //       .then(function (res) {
+    //         item.result = (Object.keys(res.body).length) ? res.body : res.text
+    //         return Promise.resolve(item)
+    //       })
+    //     })
+    //   })
+    // },
 
     //  Obtain all the Scene´s name already declared
     getAllScenes: function () {
       return request.get(HTTP_SCENES).promise()
     },
 
-    //  Method that performs the get request for a specific device
-    getById: function (id) {
-      return request.get(HTTP_API).query({ id: id })
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-        var item = res.body[0]
-        return request.get(APP_PROXY + item.app + item.hook)
-        .then(function (res) {
-          item.result = res.body
-          return Promise.resolve(item)
-        })
-      })
-    },
-
-    //  Method that performs the get request for a specific device
-    getByName: function (alias) {
-      return request.get(HTTP_API).query({ alias: alias })
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-        var item = res.body[0]
-        return request.get(APP_PROXY + item.app + item.hook)
-        .then(function (res) {
-          item.result = res.body
-          return Promise.resolve(item)
-        })
-      })
-    },
+    // //  Method that performs the get request for a specific device
+    // getById: function (id) {
+    //   return request.get(HTTP_API).query({ id: id })
+    //   .then(function (res) {
+    //     if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+    //     var item = res.body[0]
+    //     return request.get(APP_PROXY + item.app + item.hook)
+    //     .then(function (res) {
+    //       item.result = res.body
+    //       return Promise.resolve(item)
+    //     })
+    //   })
+    // },
+    //
+    // //  Method that performs the get request for a specific device
+    // getByName: function (alias) {
+    //   return request.get(HTTP_API).query({ alias: alias })
+    //   .then(function (res) {
+    //     if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+    //     var item = res.body[0]
+    //     return request.get(APP_PROXY + item.app + item.hook)
+    //     .then(function (res) {
+    //       item.result = res.body
+    //       return Promise.resolve(item)
+    //     })
+    //   })
+    // },
 
     //  Obtain all the details of a given Scene
     getScene: function () {
@@ -226,73 +226,55 @@ function netbeast (top) {
         })
       })
       return promise
-    },
-
-
-    on: function (callback) {
-      var client = mqtt.connect('ws://' + process.env.NETBEAST)
-
-      client.on('connect', function () {
-        client.subscribe('netbeast/' + topic)
-      })
-
-      if (!topic) return Promise.reject(new Error('Topic required'))
-
-      client.on('message', function (topic, message) {
-        if (message) {
-          message = JSON.parse(message.toString())
-          callback(null, message)
-        }
-      })
-    },
-
-    //  Method that performs the set request
-    set: function (args) {
-      return request.get(HTTP_API).query(queryCustom())
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-
-        return Promise.map(res.body, function (item, done) {
-          return request.post(APP_PROXY + item.app + item.hook).send(args)
-          .then(function (res) {
-            item.result = (Object.keys(res.body).length) ? res.body : res.text
-            return Promise.resolve(item)
-          })
-        })
-      })
-    },
-
-    //  Method that performs the set request  for a specific device
-    setById: function (id, args) {
-      //  Creating a promise
-      return request.get(HTTP_API).query({id: id})
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-
-        var item = res.body[0]
-        return request.post(APP_PROXY + item.app + item.hook).send(args)
-        .then(function (res) {
-          item.result = (Object.keys(res.body).length) ? res.body : res.text
-          return Promise.resolve(item)
-        })
-      })
-    },
-
-    //  Method that performs the set request  for a specific device
-    setByName: function (name, args) {
-      //  Creating a promise
-      return request.get(HTTP_API).query({alias: alias})
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-
-        var item = res.body[0]
-        return request.post(APP_PROXY + item.app + item.hook).send(args)
-        .then(function (res) {
-          item.result = (Object.keys(res.body).length) ? res.body : res.text
-          return Promise.resolve(item)
-        })
-      })
-    }
+    }//,
+  //
+  //   //  Method that performs the set request
+  //   set: function (args) {
+  //     return request.get(HTTP_API).query(queryCustom())
+  //     .then(function (res) {
+  //       if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+  //
+  //       return Promise.map(res.body, function (item, done) {
+  //         return request.post(APP_PROXY + item.app + item.hook).send(args)
+  //         .then(function (res) {
+  //           item.result = (Object.keys(res.body).length) ? res.body : res.text
+  //           return Promise.resolve(item)
+  //         })
+  //       })
+  //     })
+  //   },
+  //
+  //   //  Method that performs the set request  for a specific device
+  //   setById: function (id, args) {
+  //     //  Creating a promise
+  //     return request.get(HTTP_API).query({id: id})
+  //     .then(function (res) {
+  //       if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+  //
+  //       var item = res.body[0]
+  //       return request.post(APP_PROXY + item.app + item.hook).send(args)
+  //       .then(function (res) {
+  //         item.result = (Object.keys(res.body).length) ? res.body : res.text
+  //         return Promise.resolve(item)
+  //       })
+  //     })
+  //   },
+  //
+  //   //  Method that performs the set request  for a specific device
+  //   setByName: function (name, args) {
+  //     //  Creating a promise
+  //     return request.get(HTTP_API).query({alias: alias})
+  //     .then(function (res) {
+  //       if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+  //
+  //       var item = res.body[0]
+  //       return request.post(APP_PROXY + item.app + item.hook).send(args)
+  //       .then(function (res) {
+  //         item.result = (Object.keys(res.body).length) ? res.body : res.text
+  //         return Promise.resolve(item)
+  //       })
+  //     })
+  //   }
   }
   //  Adapter Pattern
   return core
@@ -392,6 +374,23 @@ netbeast.success = function (body, title) {
 
 netbeast.warning = function (body, title) {
   netbeast.emit({ emphasis: 'warning', body: body, title: title })
+}
+
+netbeast.on = function (topic, callback) {
+  var client = mqtt.connect('ws://' + process.env.NETBEAST)
+
+  client.on('connect', function () {
+    client.subscribe('netbeast/' + topic)
+  })
+
+  if (!topic) return Promise.reject(new Error('Topic required'))
+
+  client.on('message', function (topic, message) {
+    if (message) {
+      message = JSON.parse(message.toString())
+      callback(null, message)
+    }
+  })
 }
 
 // Search for devices of a given brand (or all)
