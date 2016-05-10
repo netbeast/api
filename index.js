@@ -8,7 +8,6 @@ var scan = require('./lib/scan')
 var NETBEAST = require('./lib/init')() // load env variables if needed or crash program
 const HTTP_API = 'http://' + NETBEAST + '/api/resources'
 const HTTP_SCENES = 'http://' + NETBEAST + '/api/scenes'
-const HTTP_API_I = 'http://' + NETBEAST + '/api/i/'
 const APP_PROXY = 'http://' + NETBEAST + '/i/'
 
 console.log(process.env)
@@ -127,7 +126,7 @@ function netbeast (topic) {
   //  Method that performs the get request
   self.get = function (args) {
     if (self.props.topic === undefined) return Promise.reject(new Error('Topic required'))
-    return request.get(HTTP_API_I + 'topic/' + self.props.topic).query(self.props).promise()
+    return request.get(HTTP_API + '/topic/' + self.props.topic).query(self.props).promise()
   }
 
   //  Obtain all the Scene´s name already declared
@@ -137,12 +136,12 @@ function netbeast (topic) {
 
   //  Method that performs the get request for a specific device
   self.getById = function (id) {
-    return request.get(HTTP_API_I + 'id/' + id).promise()
+    return request.get(HTTP_API + '/id/' + id).promise()
   }
 
   //  Method that performs the get request for a specific device
   self.getByName = function (alias) {
-    return request.get(HTTP_API_I + 'alias/' + alias).promise()
+    return request.get(HTTP_API + '/alias/' + alias).promise()
   }
 
   //  Obtain all the details of a given Scene
@@ -164,17 +163,25 @@ function netbeast (topic) {
 
   //  Method that performs the set request
   self.set = function (args) {
-    return request.post(HTTP_API_I + 'topic/' + self.props.topic).query(queryCustom()).send(args).promise()
+    return request.post(HTTP_API + '/topic/' + self.props.topic).query(queryCustom()).send(args).promise()
   }
 
   //  Method that performs the set request  for a specific device
   self.setById = function (id, args) {
-    return request.post(HTTP_API_I + 'id/' + id).send(args).promise()
+    return request.post(HTTP_API + '/id/' + id).send(args).promise()
   }
 
   //  Method that performs the set request  for a specific device
   self.setByName = function (alias, args) {
-    return request.post(HTTP_API_I + 'alias/' + alias).send(args).promise()
+    return request.post(HTTP_API + '/alias/' + alias).send(args).promise()
+  }
+
+  self.updateDB = function (args) {
+    if (!self.props.topic && !args.topic) return Promise.reject(new Error('Topic required'))
+    if (!args.hook) return Promise.reject(new Error('Hook required'))
+    if (!args.app) return Promise.reject(new Error('App name required'))
+
+    return request.post(HTTP_API + '/update').send(queryCustom(args)).promise()
   }
 
   function queryCustom (args) {
