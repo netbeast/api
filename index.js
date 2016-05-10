@@ -6,10 +6,10 @@ var mqtt = require('mqtt')
 var scan = require('./lib/scan')
 
 var NETBEAST = require('./lib/init')() // load env variables if needed or crash program
-const HTTP_API = 'https://' + NETBEAST + '/api/resources'
-const HTTP_SCENES = 'https://' + NETBEAST + '/api/scenes'
-const HTTP_API_I = 'https://' + NETBEAST + '/api/i/'
-const APP_PROXY = 'https://' + NETBEAST + '/i/'
+const HTTP_API = 'http://' + NETBEAST + '/api/resources'
+const HTTP_SCENES = 'http://' + NETBEAST + '/api/scenes'
+const HTTP_API_I = 'http://' + NETBEAST + '/api/i/'
+const APP_PROXY = 'http://' + NETBEAST + '/i/'
 
 console.log(process.env)
 function netbeast (topic) {
@@ -228,7 +228,7 @@ netbeast.find = function () {
 }
 
 netbeast.set = function (networkObject) {
-  process.env.NETBEAST = networkObject.address + ':' + networkObject.port.secure_port
+  process.env.NETBEAST = networkObject.address + ':' + networkObject.port.port
   return netbeast
 }
 
