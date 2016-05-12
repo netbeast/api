@@ -15,6 +15,7 @@ function netbeast (topic) {
   self.props = {}
   self.props.topic = topic
   self.props.location = null
+  self.props.alias = null
   self.props.group = null
   // definiciones
 
@@ -37,6 +38,12 @@ function netbeast (topic) {
     })
   }
 
+  //  Specified the alias of the objects
+  self.alias = function (alias) {
+    self.props.alias = alias
+    return self
+  }
+
   // Apply the values saved on a Scene
   self.applyScene = function () {
     if (!self.props.topic) return Promise.reject('There isn´t any scene selected')
@@ -54,9 +61,9 @@ function netbeast (topic) {
     return self
   }
 
-  self.changeName = function (alias) {
-    if (!alias) return Promise.reject(new Error('Name required --> netbeast(<id>).changeName(<name>)'))
-    if (!self.props.topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeName(<name>)'))
+  self.changeAlias = function (alias) {
+    if (!alias) return Promise.reject(new Error('Alias required --> netbeast(<id>).changeAlias(<alias>)'))
+    if (!self.props.topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeAlias(<alias>)'))
 
     return request.patch(HTTP_API + '?id=' + self.props.topic).send({alias: alias}).promise()
   }
@@ -108,7 +115,7 @@ function netbeast (topic) {
   }
 
   //  Method that performs the delete request for a specific device
-  self.deleteByName = function (alias) {
+  self.deleteByAlias = function (alias) {
     return request.del(HTTP_API).query({ alias: alias }).promise()
   }
 
@@ -139,7 +146,7 @@ function netbeast (topic) {
   }
 
   //  Method that performs the get request for a specific device
-  self.getByName = function (alias) {
+  self.getByAlias = function (alias) {
     return request.get(HTTP_API + '/alias/' + alias).promise()
   }
 
@@ -179,7 +186,7 @@ function netbeast (topic) {
   }
 
   //  Method that performs the set request  for a specific device
-  self.setByName = function (alias, args) {
+  self.setByAlias = function (alias, args) {
     return request.post(HTTP_API + '/alias/' + alias).send(args).promise()
   }
 
@@ -201,6 +208,7 @@ function netbeast (topic) {
   function queryCustom (args) {
     var queryString = args || {}
     if (self.props.topic) queryString.topic = self.props.topic
+    if (self.props.alias) queryString.alias = self.props.alias
     if (self.props.location) queryString.location = self.props.location
     if (self.props.group) queryString.groupname = self.props.group
     return queryString
@@ -250,7 +258,7 @@ netbeast.find = function () {
 }
 
 netbeast.set = function (networkObject) {
-  process.env.NETBEAST = networkObject.address + ':' + networkObject.port.port
+  process.env.NETBEAST = networkObject.address + ':' + networkObject.port
   return netbeast
 }
 
