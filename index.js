@@ -10,7 +10,6 @@ const HTTP_API = 'http://' + NETBEAST + '/api/resources'
 const HTTP_SCENES = 'http://' + NETBEAST + '/api/scenes'
 const APP_PROXY = 'http://' + NETBEAST + '/i/'
 
-console.log(process.env)
 function netbeast (topic) {
   var self = {}
   self.props = {}
@@ -161,6 +160,14 @@ function netbeast (topic) {
     })
   }
 
+  self.publish = function (message) {
+    var client = mqtt.connect('ws://' + process.env.NETBEAST)
+
+    client.on('connect', function () {
+      client.publish('netbeast/' + self.props.topic, JSON.stringify({message}))
+    })
+  }
+
   //  Method that performs the set request
   self.set = function (args) {
     return request.post(HTTP_API + '/topic/' + self.props.topic).query(queryCustom()).send(args).promise()
@@ -181,11 +188,13 @@ function netbeast (topic) {
     if (!args.hook) return Promise.reject(new Error('Hook required'))
     if (!args.app) return Promise.reject(new Error('App name required'))
 
+    console.log(HTTP_API + '/update')
     return request.post(HTTP_API + '/update').send(queryCustom(args)).promise()
   }
 
   function queryCustom (args) {
     var queryString = args || {}
+    if (self.props.topic) queryString.topic = self.props.topic
     if (self.props.location) queryString.location = self.props.location
     if (self.props.group) queryString.groupname = self.props.group
     return queryString
