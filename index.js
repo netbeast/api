@@ -183,6 +183,12 @@ function netbeast (topic) {
     return request.post(HTTP_API + '/alias/' + alias).send(args).promise()
   }
 
+  //  Specified the location of the objects
+  self.topic = function (topic) {
+    self.props.topic = topic
+    return self
+  }
+
   self.updateDB = function (args) {
     if (!self.props.topic && !args.topic) return Promise.reject(new Error('Topic required'))
     if (!args.hook) return Promise.reject(new Error('Hook required'))
