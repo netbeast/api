@@ -5,367 +5,238 @@ var mqtt = require('mqtt')
 
 var scan = require('./lib/scan')
 
-var location = null
-var group = null
-var topic = null
+var NETBEAST = require('./lib/init')() // load env variables if needed or crash program
+const HTTP_API = 'http://' + NETBEAST + '/api/resources'
+const HTTP_SCENES = 'http://' + NETBEAST + '/api/scenes'
+const APP_PROXY = 'http://' + NETBEAST + '/i/'
 
-function netbeast (top) {
-  var NETBEAST = require('./lib/init')() // load env variables if needed or crash program
-  const HTTP_API = 'http://' + NETBEAST + '/api/resources'
-  const HTTP_SCENES = 'http://' + NETBEAST + '/api/scenes'
-  const APP_PROXY = 'http://' + NETBEAST + '/i/'
+function netbeast (topic) {
+  var self = {}
+  self.props = {}
+  self.props.topic = topic
+  self.props.location = null
+  self.props.alias = null
+  self.props.group = null
+  // definiciones
 
-  if (top) topic = top
-
-  var core = {
-    // Add a device to a given scene
-    addDeviceScene: function (deviceid) {
-      return request.get(HTTP_API).query({ id: deviceid })
+  // Add a device to a given scene
+  self.addDeviceScene = function (deviceid) {
+    return request.get(HTTP_API).query({ id: deviceid })
+    .then(function (res) {
+      if (!res.body.length) return Promise.reject('These resources doesn´t exists!')
+      return request.get(APP_PROXY + res.body[0].app + res.body[0].hook)
       .then(function (res) {
-        if (!res.body.length) return Promise.reject('These resources doesn´t exists!')
-        return request.get(APP_PROXY + res.body[0].app + res.body[0].hook)
-        .then(function (res) {
-          //  Registra dispositivo en la escena
-          var device = {
-            id: deviceid,
-            sceneid: topic,
-            location: location,
-            state: JSON.stringify(res.body)
-          }
-          return request.post(HTTP_SCENES).send(device).promise()
-        })
-      })
-    },
-
-    // Apply the values saved on a Scene
-    applyScene: function () {
-      if (!topic) return Promise.reject('There isn´t any scene selected')
-      return core.getScene()
-      .then(function (res) {
-        res.body.forEach(function (device) {
-          return core.setById(device.id, JSON.parse(device.state))
-        })
-      })
-    },
-
-    //  Specified the location of the objects
-    at: function (loc) {
-      location = loc
-      return core
-    },
-
-    changeName: function (alias) {
-      if (!alias) return Promise.reject(new Error('Name required --> netbeast(<id>).changeName(<name>)'))
-      if (!topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeName(<name>)'))
-
-      return request.patch(HTTP_API + '?id=' + topic)
-      .send({alias: alias})
-      .then(function (resp) {
-        return Promise.resolve(resp.body)
-      }).catch(function (err) {
-        if (err) return Promise.reject(err)
-      })
-    },
-
-    changeLocation: function (alias) {
-      if (!alias) return Promise.reject(new Error('Location required --> netbeast(<id>).changeLocation(<location>)'))
-      if (!topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeLocation(<location>)'))
-
-      return request.patch(HTTP_API + '?id=' + topic)
-      .send({location: location})
-      .then(function (resp) {
-        return Promise.resolve(resp.body)
-      }).catch(function (err) {
-        if (err) return Promise.reject(err)
-      })
-    },
-
-    create: function (args) {
-      if (!topic && !args.topic) return Promise.reject(new Error('Topic required'))
-      if (!args.hook) return Promise.reject(new Error('Hook required'))
-      if (!args.app) return Promise.reject(new Error('App name required'))
-
-      var query = queryCustom(args)
-      return request.post(HTTP_API)
-      .send(query)
-      .then(function (resp) {
-        return Promise.resolve(resp.body)
-      }).catch(function (err) {
-        if (err) return Promise.reject(err)
-      })
-    },
-
-    //  Create a Scene with the given sates of the devices
-    createCustomScene: function (states) {
-      return Promise.map(states, function (device, done) {
         //  Registra dispositivo en la escena
-        device.sceneid = topic
-        device.state = JSON.stringify(device.status)
-        for (var key in device) {
-          if (['id', 'sceneid', 'state'].indexOf(key) < 0) delete device[key]
+        var device = {
+          id: deviceid,
+          sceneid: self.props.topic,
+          location: self.props.location,
+          state: JSON.stringify(res.body)
         }
         return request.post(HTTP_SCENES).send(device).promise()
       })
-    },
+    })
+  }
 
-    // Create a Scene with the current sates of the devices
-    createScene: function (devicesid) {
-      var promise = new Promise(function (resolve, reject) {
-        devicesid.forEach(function (id) {
-          core.addDeviceScene(id)
-          .then(function (data) {
-            resolve(data)
-          })
-          .catch(function (data) {
-            reject(data)
-          })
-        })
+  //  Specified the alias of the objects
+  self.alias = function (alias) {
+    self.props.alias = alias
+    return self
+  }
+
+  // Apply the values saved on a Scene
+  self.applyScene = function () {
+    if (!self.props.topic) return Promise.reject('There isn´t any scene selected')
+    return self.getScene()
+    .then(function (res) {
+      res.body.forEach(function (device) {
+        return self.setById(device.id, JSON.parse(device.state))
       })
-      return promise
-    },
+    })
+  }
 
-    //  Method that performs the delete request
-    delete: function (args) {
-      const queryString = queryCustom(normalizeArguments(args))
-      return request.del(HTTP_API).query(queryString).promise()
-    },
+  //  Specified the location of the objects
+  self.at = function (location) {
+    self.props.location = location
+    return self
+  }
 
-    //  Method that performs the delete request for a specific device
-    deleteById: function (id) {
-      return request.del(HTTP_API).query({ id: id }).promise()
-    },
+  self.changeAlias = function (alias) {
+    if (!alias) return Promise.reject(new Error('Alias required --> netbeast(<id>).changeAlias(<alias>)'))
+    if (!self.props.topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeAlias(<alias>)'))
 
-    //  Method that performs the delete request for a specific device
-    deleteByName: function (alias) {
-      return request.del(HTTP_API).query({ alias: alias }).promise()
-    },
+    return request.patch(HTTP_API + '?id=' + self.props.topic).send({alias: alias}).promise()
+  }
 
-    //  Delete a device from a Scene
-    deleteDeviceScene: function (deviceid) {
-      return request.del(HTTP_SCENES).query({sceneid: topic, id: deviceid}).promise()
-    },
+  self.changeLocation = function (location) {
+    if (!location) return Promise.reject(new Error('Location required --> netbeast(<id>).changeLocation(<location>)'))
+    if (!self.props.topic) return Promise.reject(new Error('Id required --> netbeast(<id>).changeLocation(<location>)'))
 
-    //  Delete a Scene
-    deleteScene: function () {
-      return request.del(HTTP_SCENES).query({sceneid: topic}).promise()
-    },
+    return request.patch(HTTP_API + '?id=' + self.props.topic).send({location: location}).promise()
+  }
 
-    emit: function (msg) {
-      // Log notification through console
-      var str = chalk.bgCyan('ws') +
-      chalk.bold.bgCyan(msg.title || '::')
+  self.create = function (args) {
+    if (!self.props.topic && !args.topic) return Promise.reject(new Error('Topic required'))
+    if (!args.hook) return Promise.reject(new Error('Hook required'))
+    if (!args.app) return Promise.reject(new Error('App name required'))
 
-      switch (msg.emphasis) {
-        case 'error':
-        str = str + chalk.bgRed(msg.body)
-        break
-        case 'warning':
-        str = str + chalk.bgYellow(msg.body)
-        break
-        case 'info':
-        str = str + chalk.bgBlue(msg.body)
-        break
-        case 'success':
-        str = str + chalk.bgGreen(msg.body)
-        break
+    return request.post(HTTP_API).send(queryCustom(args)).promise()
+  }
+
+  //  Create a Scene with the given sates of the devices
+  self.createCustomScene = function (states) {
+    return Promise.map(states, function (device, done) {
+      //  Registra dispositivo en la escena
+      device.sceneid = self.props.topic
+      device.state = JSON.stringify(device.status)
+      for (var key in device) {
+        if (['id', 'sceneid', 'state'].indexOf(key) < 0) delete device[key]
       }
+      return request.post(HTTP_SCENES).send(device).promise()
+    })
+  }
 
-      var client = mqtt.connect('ws://' + process.env.NETBEAST)
-      client.publish('netbeast/push', JSON.stringify(msg))
-      client.end()
-    },
+  // Create a Scene with the current sates of the devices
+  self.createScene = function (devicesid) {
+    return Promise.map(devicesid, function (id) {
+      self.addDeviceScene(id)
+    })
+  }
 
-    error: function (body, title) {
-      core.emit({ emphasis: 'error', body: body, title: title })
-    },
+  //  Method that performs the delete request
+  self.delete = function (args) {
+    const queryString = queryCustom(normalizeArguments(args))
+    return request.del(HTTP_API).query(queryString).promise()
+  }
 
-    //  Method that performs the get request
-    get: function (args) {
-      var queryString = normalizeArguments(args)
+  //  Method that performs the delete request for a specific device
+  self.deleteById = function (id) {
+    return request.del(HTTP_API).query({ id: id }).promise()
+  }
 
-      queryString = (queryString === undefined) ? {} : queryString
-      return request.get(HTTP_API).query(queryCustom())
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-        // data should be directly in res.body, which must be an array
-        return Promise.map(res.body, function (item, done) {
-          return request.get(APP_PROXY + item.app + item.hook).query(queryString)
-          .then(function (res) {
-            item.result = (Object.keys(res.body).length) ? res.body : res.text
-            return Promise.resolve(item)
-          })
-        })
-      })
-    },
+  //  Method that performs the delete request for a specific device
+  self.deleteByAlias = function (alias) {
+    return request.del(HTTP_API).query({ alias: alias }).promise()
+  }
 
-    //  Obtain all the Scene´s name already declared
-    getAllScenes: function () {
-      return request.get(HTTP_SCENES).promise()
-    },
+  //  Delete a device from a Scene
+  self.deleteDeviceScene = function (deviceid) {
+    return request.del(HTTP_SCENES).query({sceneid: self.props.topic, id: deviceid}).promise()
+  }
 
-    //  Method that performs the get request for a specific device
-    getById: function (id) {
-      return request.get(HTTP_API).query({ id: id })
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-        var item = res.body[0]
-        return request.get(APP_PROXY + item.app + item.hook)
-        .then(function (res) {
-          item.result = res.body
-          return Promise.resolve(item)
-        })
-      })
-    },
+  //  Delete a Scene
+  self.deleteScene = function () {
+    return request.del(HTTP_SCENES).query({sceneid: self.props.topic}).promise()
+  }
 
-    //  Method that performs the get request for a specific device
-    getByName: function (alias) {
-      return request.get(HTTP_API).query({ alias: alias })
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
-        var item = res.body[0]
-        return request.get(APP_PROXY + item.app + item.hook)
-        .then(function (res) {
-          item.result = res.body
-          return Promise.resolve(item)
-        })
-      })
-    },
+  //  Method that performs the get request
+  self.get = function (args) {
+    if (self.props.topic === undefined) return Promise.reject(new Error('Topic required'))
+    return request.get(HTTP_API + '/topic/' + self.props.topic).query(self.props).promise()
+  }
 
-    //  Obtain all the details of a given Scene
-    getScene: function () {
-      return request.get(HTTP_SCENES).query(queryCustomScene()).promise()
-    },
+  //  Obtain all the Scene´s name already declared
+  self.getAllScenes = function () {
+    return request.get(HTTP_SCENES).promise()
+  }
 
-    //  Specified if the resource belongs to a certain group
-    groupBy: function (name) {
-      group = name
-      return core
-    },
+  //  Method that performs the get request for a specific device
+  self.getById = function (id) {
+    return request.get(HTTP_API + '/id/' + id).promise()
+  }
 
-    groupDevices: function (name, devices) {
-      var promise = new Promise(function (resolve, reject) {
-        devices.forEach(function (item) {
-          request.patch(HTTP_API).query({id: item}).send({groupname: name}).promise()
-          .then(function (data) {
-            resolve(data)
-          })
-          .catch(function (data) {
-            reject(data)
-          })
-        })
-      })
-      return promise
-    },
+  //  Method that performs the get request for a specific device
+  self.getByAlias = function (alias) {
+    return request.get(HTTP_API + '/alias/' + alias).promise()
+  }
 
-    info: function (body, title) {
-      core.emit({ emphasis: 'info', body: body, title: title })
-    },
+  //  Obtain all the details of a given Scene
+  self.getScene = function () {
+    return request.get(HTTP_SCENES).query(queryCustomScene()).promise()
+  }
 
-    on: function (callback) {
-      var client = mqtt.connect('ws://' + process.env.NETBEAST)
+  //  Specified if the resource belongs to a certain group
+  self.groupBy = function (group) {
+    self.props.group = group
+    return self
+  }
 
-      client.on('connect', function () {
-        client.subscribe('netbeast/' + topic)
-      })
+  self.groupDevices = function (name, devices) {
+    return Promise.map(devices, function (item) {
+      request.patch(HTTP_API).query({id: item}).send({groupname: name}).promise()
+    })
+  }
 
-      if (!topic) return Promise.reject(new Error('Topic required'))
+  self.publish = function (message) {
+    var client = mqtt.connect('ws://' + process.env.NETBEAST)
 
-      client.on('message', function (topic, message) {
-        if (message) {
-          message = JSON.parse(message.toString())
-          callback(null, message)
-        }
-      })
-    },
+    client.on('connect', function () {
+      client.publish('netbeast/' + self.props.topic, JSON.stringify({message}))
+    })
+  }
 
-    //  Method that performs the set request
-    set: function (args) {
-      return request.get(HTTP_API).query(queryCustom())
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+  //  Method that performs the set request
+  self.set = function (args) {
+    return request.post(HTTP_API + '/topic/' + self.props.topic).query(queryCustom()).send(args).promise()
+  }
 
-        return Promise.map(res.body, function (item, done) {
-          return request.post(APP_PROXY + item.app + item.hook).send(args)
-          .then(function (res) {
-            item.result = (Object.keys(res.body).length) ? res.body : res.text
-            return Promise.resolve(item)
-          })
-        })
-      })
-    },
+  //  Method that performs the set request  for a specific device
+  self.setById = function (id, args) {
+    return request.post(HTTP_API + '/id/' + id).send(args).promise()
+  }
 
-    //  Method that performs the set request  for a specific device
-    setById: function (id, args) {
-      //  Creating a promise
-      return request.get(HTTP_API).query({id: id})
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+  //  Method that performs the set request  for a specific device
+  self.setByAlias = function (alias, args) {
+    return request.post(HTTP_API + '/alias/' + alias).send(args).promise()
+  }
 
-        var item = res.body[0]
-        return request.post(APP_PROXY + item.app + item.hook).send(args)
-        .then(function (res) {
-          item.result = (Object.keys(res.body).length) ? res.body : res.text
-          return Promise.resolve(item)
-        })
-      })
-    },
+  //  Specified the location of the objects
+  self.topic = function (topic) {
+    self.props.topic = topic
+    return self
+  }
 
-    //  Method that performs the set request  for a specific device
-    setByName: function (name, args) {
-      //  Creating a promise
-      return request.get(HTTP_API).query({alias: alias})
-      .then(function (res) {
-        if (!res.body.length) return Promise.reject(new Error('These resources doesn´t exists!'))
+  self.updateDB = function (args) {
+    if (!self.props.topic && !args.topic) return Promise.reject(new Error('Topic required'))
+    if (!args.hook) return Promise.reject(new Error('Hook required'))
+    if (!args.app) return Promise.reject(new Error('App name required'))
 
-        var item = res.body[0]
-        return request.post(APP_PROXY + item.app + item.hook).send(args)
-        .then(function (res) {
-          item.result = (Object.keys(res.body).length) ? res.body : res.text
-          return Promise.resolve(item)
-        })
-      })
-    },
+    console.log(HTTP_API + '/update')
+    return request.post(HTTP_API + '/update').send(queryCustom(args)).promise()
+  }
 
-    success: function (body, title) {
-      core.emit({ emphasis: 'success', body: body, title: title })
-    },
+  function queryCustom (args) {
+    var queryString = args || {}
+    if (self.props.topic) queryString.topic = self.props.topic
+    if (self.props.alias) queryString.alias = self.props.alias
+    if (self.props.location) queryString.location = self.props.location
+    if (self.props.group) queryString.groupname = self.props.group
+    return queryString
+  }
 
-    warning: function (body, title) {
-      core.emit({ emphasis: 'warning', body: body, title: title })
+  function queryCustomScene (args) {
+    var queryString = args || {}
+    if (self.props.location) queryString.location = self.props.location
+    if (self.props.topic) queryString.sceneid = self.props.topic
+    return queryString
+  }
+
+  function normalizeArguments (args) {
+    //  Prepare query to be an object out of args unless it is undefined
+    var query = typeof args === 'undefined' ? undefined : {}
+    // if it is an string turn it into an array
+    args = typeof args === 'string' ? [args] : args
+    // and normalize it into an object again
+    if (args instanceof Array) {
+      args.forEach(function (param) { query[param] = '' })
+    } else if (typeof args === 'object') {
+      query = args
     }
-  }
-  //  Adapter Pattern
-  return core
-}
 
-function queryCustom (args) {
-  var queryString = args || {}
-  if (location) queryString.location = location
-  if (group) queryString.groupname = group
-  if (topic) queryString.topic = topic
-  return queryString
-}
-
-function queryCustomScene (args) {
-  var queryString = args || {}
-  if (location) queryString.location = location
-  if (topic) queryString.sceneid = topic
-  return queryString
-}
-
-function normalizeArguments (args) {
-  //  Prepare query to be an object out of args unless it is undefined
-  var query = typeof args === 'undefined' ? undefined : {}
-  // if it is an string turn it into an array
-  args = typeof args === 'string' ? [args] : args
-  // and normalize it into an object again
-  if (args instanceof Array) {
-    args.forEach(function (param) { query[param] = '' })
-  } else if (typeof args === 'object') {
-    query = args
+    return query
   }
 
-  return query
+  return self
 }
 
 netbeast.scan = function () {
@@ -386,11 +257,70 @@ netbeast.find = function () {
   return netbeast.scan()
 }
 
-netbeast.topic = netbeast
-
 netbeast.set = function (networkObject) {
   process.env.NETBEAST = networkObject.address + ':' + networkObject.port
   return netbeast
+}
+
+netbeast.emit = function (msg) {
+  // Log notification through console
+  var str = chalk.bgCyan('ws') +
+  chalk.bold.bgCyan(msg.title || '::')
+
+  switch (msg.emphasis) {
+    case 'error':
+    str = str + chalk.bgRed(msg.body)
+    break
+    case 'warning':
+    str = str + chalk.bgYellow(msg.body)
+    break
+    case 'info':
+    str = str + chalk.bgBlue(msg.body)
+    break
+    case 'success':
+    str = str + chalk.bgGreen(msg.body)
+    break
+  }
+
+  var client = mqtt.connect('ws://' + process.env.NETBEAST)
+  console.log(str)
+  client.publish('netbeast/push', JSON.stringify(msg))
+  client.end()
+}
+
+netbeast.error = function (body, title) {
+  netbeast.emit({ emphasis: 'error', body: body, title: title })
+}
+
+netbeast.info = function (body, title) {
+  netbeast.emit({ emphasis: 'info', body: body, title: title })
+}
+
+netbeast.success = function (body, title) {
+  netbeast.emit({ emphasis: 'success', body: body, title: title })
+}
+
+netbeast.warning = function (body, title) {
+  netbeast.emit({ emphasis: 'warning', body: body, title: title })
+}
+
+netbeast.on = function (topic, callback) {
+  var client = mqtt.connect('ws://' + process.env.NETBEAST)
+
+  client.on('connect', function () {
+    console.log('connected')
+    client.subscribe('netbeast/' + topic)
+  })
+
+  if (!topic) return Promise.reject(new Error('Topic required'))
+
+  client.on('message', function (topic, message) {
+    console.log(message)
+    if (message) {
+      message = JSON.parse(message.toString())
+      callback(null, message)
+    }
+  })
 }
 
 // Search for devices of a given brand (or all)
