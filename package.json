@@ -30,6 +30,8 @@
     "cli-spinner": "^0.2.2",
     "freeport": "^1.0.5",
     "mqtt": "^1.7.0",
-    "superagent-bluebird-promise": "^3.0.0"
+    "superagent-bluebird-promise": "^3.0.0",
+    "gulp-load-plugins": "~1.2.3",
+    "gulp": "~3.9.1"
   }
 }

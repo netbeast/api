@@ -1,4 +1,3 @@
-require('dotenv').load() // carga variables de entorno
 process.env.NETBEAST = 'localhost:8000'
 var netbeast = require("..")
 
@@ -9,8 +8,6 @@ var http = require('http')
 var request = require('request')
 var net = require('net')
 var q = require('q')
-
-var a = netbeast.scan()
 
 describe('Method with set', function () {
 
