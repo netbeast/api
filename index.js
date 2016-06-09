@@ -201,7 +201,6 @@ function netbeast (topic) {
     if (!args.hook) return Promise.reject(new Error('Hook required'))
     if (!args.app) return Promise.reject(new Error('App name required'))
 
-    console.log(HTTP_API + '/update')
     return request.post(HTTP_API + '/update').send(queryCustom(args)).promise()
   }
 
